@@ -1,25 +1,16 @@
-// Handling Route not found Error.
-const notFound = (req, res, next) => {
-  const error = new Error(`Not Fount - ${req.originalUrl}`);
-  res.status(404);
-  next(error);
-};
+import { StatusCodes } from "http-status-codes";
 
-// default error handler by express.
-const errorHandler = (error, req, res, next) => {
+const errorHandlerMiddleware = (err, req, res, next) => {
+  console.log(err);
   if (req.file) {
     fs.unlink(req.file.path, (err) => {
       console.log(err);
     });
   }
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
+  const msg = err.message || "Something went wrong, try again later";
 
-  let { message } = error || "Something went wrong. Please try again letter";
-
-  res.status(statusCode).json({
-    message: message,
-    stack: process.env.NODE_ENV === "production" ? "" : error.stack,
-  });
+  res.status(statusCode).json({ msg });
 };
 
-export { notFound, errorHandler };
+export default errorHandlerMiddleware;
